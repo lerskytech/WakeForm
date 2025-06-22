@@ -7,6 +7,10 @@ export default defineConfig({
   optimizeDeps: {
     include: ['framer-motion', 'three', '@react-three/fiber', 'gsap']
   },
+  css: {
+    postcss: './postcss.config.js',
+    devSourcemap: true
+  },
   build: {
     sourcemap: true,
     assetsDir: 'assets',
