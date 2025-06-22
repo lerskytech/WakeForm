@@ -1,0 +1,118 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #00C2FF;
+  --primary-dark: #0084B0;
+  --primary-light: #80E1FF;
+  --secondary: #00FFB2;
+  --secondary-dark: #00B37E;
+  --secondary-light: #80FFD8;
+  --bg-dark: #001424;
+  --bg-default: #002548;
+  --bg-light: #003B6D;
+  --accent: #FFFFFF;
+  --accent-blue: #E0F7FF;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  background-color: var(--bg-default);
+  color: var(--accent);
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body {
+  position: relative;
+  min-height: 100vh;
+}
+
+/* Disable scrollbar but keep functionality */
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+/* Custom cursor styles */
+.custom-cursor {
+  @apply fixed pointer-events-none z-50 w-10 h-10 rounded-full mix-blend-screen;
+  transform: translate(-50%, -50%);
+  transition: width 0.2s, height 0.2s, opacity 0.2s;
+  backdrop-filter: blur(2px);
+}
+
+/* Neon text effect */
+.neon-text {
+  text-shadow: 
+    0 0 5px var(--primary-light),
+    0 0 10px var(--primary-light),
+    0 0 20px var(--primary),
+    0 0 40px var(--primary),
+    0 0 80px var(--primary-dark);
+}
+
+/* Wave animation container */
+.wave-container {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Breathing animation */
+.animate-breathe {
+  animation: breathe 8s ease-in-out infinite;
+}
+
+@keyframes flicker {
+  0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% {
+    opacity: 1;
+  }
+  20%, 21.999%, 63%, 63.999%, 65%, 69.999% {
+    opacity: 0.5;
+  }
+}
+
+.animate-flicker {
+  animation: flicker 4s linear infinite;
+}
+
+/* Text stagger animation class */
+.stagger-text > * {
+  display: inline-block;
+}
+
+/* Custom animation for the word "WAKE FORM" */
+@keyframes pulse-text {
+  0%, 100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.05);
+    filter: brightness(1.2);
+  }
+}
+
+.hero-text {
+  animation: pulse-text 6s ease-in-out infinite;
+}
+
+/* Prevent scrollbar on mobile while maintaining scrollability */
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion) {
+  .animate-breathe, .animate-float, .animate-wave, .animate-glow,
+  .hero-text, .animate-flicker, .stagger-text > * {
+    animation-duration: 20s;
+    animation-timing-function: linear;
+  }
+}
