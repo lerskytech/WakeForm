@@ -1,8 +1,9 @@
 import React, { useRef, useEffect } from 'react';
-import { motion, useAnimation as useFramerAnimation } from 'framer-motion';
-import { useAnimation } from '../contexts/AnimationContext';
+import { motion, useAnimation as useFramerAnimation, Variants } from 'framer-motion';
+import { useAnimationContext } from '../contexts/AnimationContext';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { safeSpring, safeEase } from '../utils/animationHelpers';
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger);
@@ -15,19 +16,19 @@ interface FeatureCardProps {
 }
 
 const FeatureCard: React.FC<FeatureCardProps> = ({ title, description, index }) => {
-  const { mode, isReduced } = useAnimation();
+  const { animationMode, reduceMotion } = useAnimationContext();
   const cardRef = useRef<HTMLDivElement>(null);
   const waveCanvasRef = useRef<HTMLCanvasElement>(null);
   const animationControls = useFramerAnimation();
 
   // Animation variants for cards
-  const cardVariants = {
+  const cardVariants: Variants = {
     hidden: { opacity: 0, y: 50 },
     visible: {
       opacity: 1,
       y: 0,
       transition: {
-        type: "spring",
+        type: safeSpring,
         damping: 25,
         stiffness: 100,
         delay: 0.05 * index
@@ -36,7 +37,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ title, description, index }) 
     hover: {
       y: -10,
       transition: {
-        type: "spring",
+        type: safeSpring,
         damping: 25,
         stiffness: 200
       }
@@ -45,7 +46,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ title, description, index }) 
 
   // Get colors based on current mode
   const getColors = () => {
-    switch (mode) {
+    switch (animationMode) {
       case 'chill':
         return {
           primary: '#00C2FF',
@@ -61,6 +62,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ title, description, index }) 
           bg: 'rgba(0, 37, 72, 0.5)'
         };
       case 'energize':
+      default:
         return {
           primary: '#00FFB2',
           secondary: '#00B37E',
@@ -72,7 +74,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ title, description, index }) 
 
   // Function to draw animated wave background
   const drawWave = () => {
-    if (!waveCanvasRef.current || isReduced) return;
+    if (!waveCanvasRef.current || reduceMotion) return;
     
     const canvas = waveCanvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -124,6 +126,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ title, description, index }) 
       
       // Create wave gradient
       const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+      const colors = getColors();
       gradient.addColorStop(0, colors.primary);
       gradient.addColorStop(0.5, colors.highlight);
       gradient.addColorStop(1, colors.secondary);
@@ -189,7 +192,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ title, description, index }) 
     const cleanupWave = drawWave();
     
     // Set up hover/scroll animations if not reduced
-    if (!isReduced && cardRef.current) {
+    if (!reduceMotion && cardRef.current) {
       // Reveal animation on scroll
       gsap.fromTo(
         cardRef.current,
@@ -215,7 +218,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ title, description, index }) 
     return () => {
       if (cleanupWave) cleanupWave();
     };
-  }, [mode, isReduced, animationControls, title]);
+  }, [animationMode, reduceMotion, animationControls, title]);
 
   return (
     <motion.div 
@@ -224,7 +227,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ title, description, index }) 
       variants={cardVariants}
       initial="hidden"
       animate={animationControls}
-      whileHover={isReduced ? undefined : "hover"}
+      whileHover={reduceMotion ? undefined : "hover"}
       style={{
         background: `linear-gradient(45deg, ${getColors().primary}22, ${getColors().secondary}11)`,
         borderRadius: '16px',
@@ -317,7 +320,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ title, description, index }) 
 };
 
 const FeaturesSection: React.FC = () => {
-  const { isReduced } = useAnimation();
+  const { animationMode, reduceMotion } = useAnimationContext();
   const sectionRef = useRef<HTMLElement>(null);
   const controls = useFramerAnimation();
 
@@ -339,7 +342,7 @@ const FeaturesSection: React.FC = () => {
 
   // Section reveal animation
   useEffect(() => {
-    if (!sectionRef.current || isReduced) return;
+    if (!sectionRef.current || reduceMotion) return;
     
     // Animate section title
     const titleElement = sectionRef.current.querySelector('.section-title');
@@ -360,7 +363,7 @@ const FeaturesSection: React.FC = () => {
         }
       }
     );
-  }, [controls, isReduced]);
+  }, [controls, reduceMotion]);
 
   return (
     <section ref={sectionRef} className="py-24 px-4 md:px-8 lg:px-16 relative">

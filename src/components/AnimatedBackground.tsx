@@ -1,23 +1,33 @@
 import React, { useRef, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { useAnimation } from '../contexts/AnimationContext';
+import { Canvas, useFrame, extend } from '@react-three/fiber';
+import { useAnimationContext } from '../contexts/AnimationContext';
 import * as THREE from 'three';
+// @ts-ignore - Module declaration missing but used at runtime
 import { EffectComposer, Bloom, Noise } from '@react-three/postprocessing';
+// @ts-ignore - Module declaration missing but used at runtime
 import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader';
-import { extend } from '@react-three/fiber';
+
+// Add type definitions for Three.js objects
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'svgLoader': any;
+    }
+  }
+}
 
 // Extend Three.js with the SVGLoader
 extend({ SVGLoader });
 
 // Neural particles floating in the background
 const NeuralParticles = () => {
-  const { mode, intensity, mousePosition, scrollProgress, isReduced } = useAnimation();
+  const { animationMode, intensity, mousePosition, scrollProgress, reduceMotion } = useAnimationContext();
   
   // Create particles based on mode and intensity
   const count = useMemo(() => {
-    if (isReduced) return 100;
-    return mode === 'chill' ? 200 : mode === 'focus' ? 300 : 500;
-  }, [mode, isReduced]);
+    if (reduceMotion) return 100;
+    return animationMode === 'chill' ? 200 : animationMode === 'focus' ? 300 : 500;
+  }, [animationMode, reduceMotion]);
   
   const particles = useMemo(() => {
     const temp = [];
@@ -34,10 +44,10 @@ const NeuralParticles = () => {
   const particlesMesh = useRef<THREE.Points>(null);
   
   useFrame((_, delta) => {
-    if (!particlesMesh.current || isReduced) return;
+    if (!particlesMesh.current || reduceMotion) return;
     
     // Animation speed based on mode
-    const speed = mode === 'chill' ? 0.05 : mode === 'focus' ? 0.1 : 0.2;
+    const speed = animationMode === 'chill' ? 0.05 : animationMode === 'focus' ? 0.1 : 0.2;
     
     // Rotate particles slowly
     particlesMesh.current.rotation.y += delta * speed * intensity;
@@ -63,11 +73,11 @@ const NeuralParticles = () => {
       positions[i * 3 + 2] = particle.z;
       
       // Colors based on mode
-      if (mode === 'chill') {
+      if (animationMode === 'chill') {
         colors[i * 3] = 0.5; // Blue-ish
         colors[i * 3 + 1] = 0.8;
         colors[i * 3 + 2] = 1;
-      } else if (mode === 'focus') {
+      } else if (animationMode === 'focus') {
         colors[i * 3] = 0.8; // White-ish
         colors[i * 3 + 1] = 0.9;
         colors[i * 3 + 2] = 1;
@@ -81,7 +91,7 @@ const NeuralParticles = () => {
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     return geometry;
-  }, [count, particles, mode]);
+  }, [count, particles, animationMode]);
   
   const particlesMaterial = useMemo(() => {
     return new THREE.PointsMaterial({
@@ -100,22 +110,22 @@ const NeuralParticles = () => {
 
 // Animated wave forms using 3D meshes
 const WaveForms = () => {
-  const { mode, intensity, mousePosition, scrollProgress, isReduced } = useAnimation();
+  const { animationMode, intensity, mousePosition, scrollProgress, reduceMotion } = useAnimationContext();
   const waveMesh = useRef<THREE.Mesh>(null);
   
   // Wave parameters based on mode
   const waveParams = useMemo(() => {
-    const baseSpeed = isReduced ? 0.1 : mode === 'chill' ? 0.3 : mode === 'focus' ? 0.5 : 0.8;
-    const baseAmplitude = isReduced ? 0.5 : mode === 'chill' ? 1 : mode === 'focus' ? 1.5 : 2;
-    const baseFrequency = mode === 'chill' ? 0.05 : mode === 'focus' ? 0.1 : 0.15;
+    const baseSpeed = reduceMotion ? 0.1 : animationMode === 'chill' ? 0.3 : animationMode === 'focus' ? 0.5 : 0.8;
+    const baseAmplitude = reduceMotion ? 0.5 : animationMode === 'chill' ? 1 : animationMode === 'focus' ? 1.5 : 2;
+    const baseFrequency = animationMode === 'chill' ? 0.05 : animationMode === 'focus' ? 0.1 : 0.15;
     
     return { speed: baseSpeed, amplitude: baseAmplitude, frequency: baseFrequency };
-  }, [mode, isReduced]);
+  }, [animationMode, reduceMotion]);
   
   // Create multiple wave layers
   const waveLayers = useMemo(() => {
     const layers = [];
-    const layerCount = isReduced ? 1 : 3;
+    const layerCount = reduceMotion ? 1 : 3;
     
     for (let i = 0; i < layerCount; i++) {
       const offsetFactor = i / layerCount;
@@ -128,10 +138,10 @@ const WaveForms = () => {
     }
     
     return layers;
-  }, [isReduced]);
+  }, [reduceMotion]);
   
   useFrame(({ clock }) => {
-    if (!waveMesh.current || isReduced) return;
+    if (!waveMesh.current || reduceMotion) return;
     
     const time = clock.getElapsedTime();
     const positions = waveMesh.current.geometry.attributes.position;
@@ -187,14 +197,14 @@ const WaveForms = () => {
 
 // Main animated background component
 const AnimatedBackground: React.FC = () => {
-  const { mode, isReduced } = useAnimation();
+  const { animationMode, reduceMotion } = useAnimationContext();
   
   // Background color based on mode
   const bgColor = useMemo(() => {
-    if (mode === 'chill') return '#001424'; 
-    if (mode === 'focus') return '#002548';
+    if (animationMode === 'chill') return '#001424'; 
+    if (animationMode === 'focus') return '#002548';
     return '#003B6D';
-  }, [mode]);
+  }, [animationMode]);
   
   return (
     <div className="animated-background fixed top-0 left-0 w-full h-full -z-10">
@@ -209,7 +219,7 @@ const AnimatedBackground: React.FC = () => {
         <NeuralParticles />
         
         {/* Post-processing effects */}
-        {!isReduced && (
+        {!reduceMotion && (
           <EffectComposer>
             <Bloom luminanceThreshold={0.2} luminanceSmoothing={0.9} height={300} />
             <Noise opacity={0.02} />

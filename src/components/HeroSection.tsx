@@ -1,14 +1,16 @@
 import React, { useRef, useEffect } from 'react';
-import { motion, useAnimation, stagger } from 'framer-motion';
-import { useAnimation as useGlobalAnimation } from '../contexts/AnimationContext';
+import { motion, useAnimation, Variants } from 'framer-motion';
+import { useAnimationContext } from '../contexts/AnimationContext';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { safeSpring, safeEase, fadeIn } from '../utils/animationHelpers';
+import { AnimationMode } from '../types';
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger);
 
 const HeroSection: React.FC = () => {
-  const { mode, intensity, mousePosition, isReduced } = useGlobalAnimation();
+  const { animationMode, intensity, mousePosition, reduceMotion } = useAnimationContext();
   const controls = useAnimation();
   const sectionRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLHeadingElement>(null);
@@ -19,7 +21,7 @@ const HeroSection: React.FC = () => {
   const titleText = "WAKE FORM";
   const subtitleText = "Form Your Wake, Transform Your Day";
 
-  const titleVariants = {
+  const titleVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -30,7 +32,7 @@ const HeroSection: React.FC = () => {
     }
   };
 
-  const letterVariants = {
+  const letterVariants: Variants = {
     hidden: { 
       opacity: 0, 
       y: 50,
@@ -41,7 +43,7 @@ const HeroSection: React.FC = () => {
       y: 0,
       rotateX: 0,
       transition: { 
-        type: "spring", 
+        type: safeSpring, 
         damping: 12,
         stiffness: 100 
       }
@@ -49,7 +51,7 @@ const HeroSection: React.FC = () => {
   };
 
   // Subtitle variants
-  const subtitleVariants = {
+  const subtitleVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     visible: { 
       opacity: 1, 
@@ -57,13 +59,13 @@ const HeroSection: React.FC = () => {
       transition: { 
         delay: 1.5, 
         duration: 0.8,
-        ease: [0.22, 1, 0.36, 1]
+        ease: safeEase
       }
     }
   };
 
   // CTA button variants
-  const ctaVariants = {
+  const ctaVariants: Variants = {
     hidden: { opacity: 0, scale: 0.8 },
     visible: { 
       opacity: 1, 
@@ -71,7 +73,7 @@ const HeroSection: React.FC = () => {
       transition: { 
         delay: 2, 
         duration: 0.5,
-        type: "spring",
+        type: safeSpring,
         stiffness: 400,
         damping: 40
       }
@@ -80,7 +82,7 @@ const HeroSection: React.FC = () => {
       scale: 1.05,
       boxShadow: "0 0 25px rgba(0, 194, 255, 0.7)",
       transition: { 
-        type: "spring",
+        type: safeSpring,
         stiffness: 400,
         damping: 10 
       }
@@ -96,7 +98,7 @@ const HeroSection: React.FC = () => {
     controls.start("visible");
     
     // Skip GSAP animations if reduced motion is preferred
-    if (isReduced || !sectionRef.current) return;
+    if (reduceMotion || !sectionRef.current) return;
     
     // Parallax effect on scroll
     const parallaxElements = [textRef.current, subtitleRef.current];
@@ -114,11 +116,11 @@ const HeroSection: React.FC = () => {
         }
       }
     );
-  }, [controls, isReduced]);
+  }, [controls, reduceMotion]);
 
   // Dynamic color based on animation mode
   const getModeColors = () => {
-    switch (mode) {
+    switch (animationMode) {
       case 'chill':
         return {
           primary: 'text-primary-light',
@@ -134,6 +136,7 @@ const HeroSection: React.FC = () => {
           glow: 'from-white/20',
         };
       case 'energize':
+      default:
         return {
           primary: 'text-secondary-light',
           shadow: 'shadow-secondary-light',
@@ -147,7 +150,7 @@ const HeroSection: React.FC = () => {
 
   // Handle mouse movement effects on title
   useEffect(() => {
-    if (isReduced || !textRef.current) return;
+    if (reduceMotion || !textRef.current) return;
     
     const handleMouseMove = () => {
       const { x, y } = mousePosition;
@@ -173,7 +176,7 @@ const HeroSection: React.FC = () => {
     
     // Update on mouse position change
     handleMouseMove();
-  }, [mousePosition, isReduced]);
+  }, [mousePosition, reduceMotion]);
 
   return (
     <section 
@@ -186,7 +189,7 @@ const HeroSection: React.FC = () => {
         ref={textRef}
         className={`text-8xl md:text-9xl font-bold tracking-tight ${colors.primary} neon-text hero-text stagger-text`}
         style={{ 
-          textShadow: `0 0 10px ${mode === 'chill' ? '#80E1FF' : mode === 'focus' ? '#FFFFFF' : '#80FFD8'}`,
+          textShadow: `0 0 10px ${animationMode === 'chill' ? '#80E1FF' : animationMode === 'focus' ? '#FFFFFF' : '#80FFD8'}`,
           filter: `brightness(${1 + intensity * 0.2})`,
           willChange: 'transform'
         }}
@@ -264,7 +267,7 @@ const HeroSection: React.FC = () => {
             cx="12" 
             cy="12" 
             r="4" 
-            fill={mode === 'chill' ? '#80E1FF' : mode === 'focus' ? '#FFFFFF' : '#80FFD8'} 
+            fill={animationMode === 'chill' ? '#80E1FF' : animationMode === 'focus' ? '#FFFFFF' : '#80FFD8'} 
           />
         </svg>
       </motion.div>
