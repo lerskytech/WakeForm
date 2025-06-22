@@ -5,6 +5,15 @@ import { gsap } from 'gsap';
 import { safeEase } from '../utils/animationHelpers';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
+// Import image assets
+import wakeForm1 from '../assets/WakeForm1.png';
+import wakeForm2 from '../assets/WakeForm2.png';
+import wakeForm3 from '../assets/WakeForm3.png';
+import wakeForm4 from '../assets/WakeForm4.png';
+import wakeForm5 from '../assets/WakeForm5.png';
+import wakeForm6 from '../assets/WakeForm6.png';
+import wakeForm7 from '../assets/WakeForm7.png';
+
 gsap.registerPlugin(ScrollTrigger);
 
 const screenshots = [
@@ -12,16 +21,43 @@ const screenshots = [
     id: 1,
     title: 'Morning Alarm',
     description: 'Gentle awakening with increasing intensity',
+    image: wakeForm1
   },
   {
     id: 2,
     title: 'Voice Affirmations',
     description: 'Record your own motivation',
+    image: wakeForm2
   },
   {
     id: 3,
     title: 'Meditation Flow',
     description: 'Transition from alarm to calm',
+    image: wakeForm3
+  },
+  {
+    id: 4,
+    title: 'Sleep Programming',
+    description: 'Subconscious integration',
+    image: wakeForm4
+  },
+  {
+    id: 5,
+    title: 'Custom Prompts',
+    description: 'Design your mental programming',
+    image: wakeForm5
+  },
+  {
+    id: 6,
+    title: 'Track Progress',
+    description: 'Monitor your mental growth',
+    image: wakeForm6
+  },
+  {
+    id: 7,
+    title: 'Advanced Settings',
+    description: 'Tune your experience',
+    image: wakeForm7
   }
 ];
 
@@ -317,9 +353,15 @@ const AppDemoSection: React.FC = () => {
                   </div>
                   
                   <div className="flex-1 flex items-center justify-center p-4">
+                    <img 
+                      src={screenshots[currentIndex].image} 
+                      alt={screenshots[currentIndex].title}
+                      className="w-full rounded-lg object-cover"
+                    />
+                    {/* Keep canvas for overlay effects */}
                     <canvas 
                       ref={canvasRef} 
-                      className="w-full h-40 rounded-lg"
+                      className="absolute top-0 left-0 w-full h-full opacity-40 pointer-events-none"
                     />
                   </div>
                   
