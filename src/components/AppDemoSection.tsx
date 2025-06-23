@@ -375,55 +375,26 @@ const AppDemoSection: React.FC = () => {
                     </p>
                   </div>
                   
-                  <div className="flex-1 flex items-center justify-center p-4 relative overflow-hidden">
-                    {/* Primary image display with neon glow */}
-                    <div className="relative w-full flex justify-center items-center">
-                      {/* Neon glow background effect */}
-                      <div 
-                        className="absolute inset-0 blur-xl opacity-30 z-0" 
-                        style={{
-                          background: `radial-gradient(circle, ${getColor()} 0%, transparent 70%)`,
+                  <div className="flex-1 flex items-center justify-center p-4 relative">
+                    {/* Simple PNG display with neon glow */}
+                    <div className="w-full h-full flex items-center justify-center">
+                      <img 
+                        src={screenshots[currentIndex].image} 
+                        alt={screenshots[currentIndex].title}
+                        className="max-w-full max-h-[60vh] rounded-lg shadow-xl"
+                        style={{ 
+                          boxShadow: `0 0 20px ${getColor()}80`,
+                          border: `1px solid ${getColor()}`
+                        }}
+                        onError={(e) => {
+                          console.error(`Failed to load image: ${screenshots[currentIndex].image}`);
+                          const imgElement = e.currentTarget as HTMLImageElement;
+                          imgElement.style.border = '2px solid red';
                         }}
                       />
-                      
-                      {/* The actual image with enhanced neon border */}
-                      <div className="relative z-10 w-full flex justify-center">
-                        <img 
-                          src={screenshots[currentIndex].image} 
-                          alt={screenshots[currentIndex].title}
-                          className={`rounded-lg object-contain max-h-[50vh] ${imagesLoaded ? 'opacity-100' : 'opacity-0'}`}
-                          style={{ 
-                            transition: 'all 0.5s ease',
-                            boxShadow: `0 0 20px ${getColor()}80, inset 0 0 10px ${getColor()}30`,
-                            border: `1px solid ${getColor()}60`
-                          }}
-                          onLoad={() => console.log(`Loaded image: ${screenshots[currentIndex].title}`)}
-                          onError={(e) => {
-                            console.error(`Failed to load image: ${screenshots[currentIndex].image}`);
-                            const imgElement = e.currentTarget as HTMLImageElement;
-                            imgElement.style.border = '2px solid red';
-                            imgElement.style.padding = '20px';
-                            imgElement.style.background = 'rgba(0,0,0,0.2)';
-                            imgElement.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='14' fill='%23${getColor().replace('#', '')}'%3EImage Error%3C/text%3E%3C/svg%3E`;
-                          }}
-                        />
-                      </div>
-                      
-                      {/* Animated scanner line effect */}
-                      {!reduceMotion && (
-                        <div 
-                          className="absolute z-20 w-full h-[2px] left-0 opacity-60"
-                          style={{
-                            backgroundColor: getColor(),
-                            boxShadow: `0 0 8px 2px ${getColor()}`,
-                            animation: 'scanLine 2s infinite linear',
-                            top: '0%',
-                          }}
-                        />
-                      )}
                     </div>
                     
-                    {/* Canvas wave overlay */}
+                    {/* Keep canvas for overlay effects */}
                     <canvas 
                       ref={canvasRef} 
                       className="absolute top-0 left-0 w-full h-full opacity-30 pointer-events-none"
