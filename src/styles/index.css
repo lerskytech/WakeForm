@@ -3,6 +3,170 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Neon Breathing Effects */
+@keyframes neon-pulse {
+  0% { filter: drop-shadow(0 0 2px #00C2FF) drop-shadow(0 0 5px #00C2FF) drop-shadow(0 0 15px #00C2FF); }
+  50% { filter: drop-shadow(0 0 5px #00C2FF) drop-shadow(0 0 15px #00C2FF) drop-shadow(0 0 30px #00C2FF); }
+  100% { filter: drop-shadow(0 0 2px #00C2FF) drop-shadow(0 0 5px #00C2FF) drop-shadow(0 0 15px #00C2FF); }
+}
+
+@keyframes neon-pulse-purple {
+  0% { filter: drop-shadow(0 0 2px #9200FF) drop-shadow(0 0 5px #9200FF) drop-shadow(0 0 15px #9200FF); }
+  50% { filter: drop-shadow(0 0 5px #9200FF) drop-shadow(0 0 15px #9200FF) drop-shadow(0 0 30px #9200FF); }
+  100% { filter: drop-shadow(0 0 2px #9200FF) drop-shadow(0 0 5px #9200FF) drop-shadow(0 0 15px #9200FF); }
+}
+
+@keyframes neon-pulse-green {
+  0% { filter: drop-shadow(0 0 2px #00FFB2) drop-shadow(0 0 5px #00FFB2) drop-shadow(0 0 15px #00FFB2); }
+  50% { filter: drop-shadow(0 0 5px #00FFB2) drop-shadow(0 0 15px #00FFB2) drop-shadow(0 0 30px #00FFB2); }
+  100% { filter: drop-shadow(0 0 2px #00FFB2) drop-shadow(0 0 5px #00FFB2) drop-shadow(0 0 15px #00FFB2); }
+}
+
+@keyframes text-glow {
+  0% { text-shadow: 0 0 2px #fff, 0 0 5px #00C2FF, 0 0 10px #00C2FF; }
+  50% { text-shadow: 0 0 5px #fff, 0 0 15px #00C2FF, 0 0 25px #00C2FF; }
+  100% { text-shadow: 0 0 2px #fff, 0 0 5px #00C2FF, 0 0 10px #00C2FF; }
+}
+
+@keyframes border-glow {
+  0% { box-shadow: 0 0 2px #00C2FF, 0 0 5px #00C2FF, inset 0 0 5px #00C2FF; }
+  50% { box-shadow: 0 0 10px #00C2FF, 0 0 20px #00C2FF, inset 0 0 10px #00C2FF; }
+  100% { box-shadow: 0 0 2px #00C2FF, 0 0 5px #00C2FF, inset 0 0 5px #00C2FF; }
+}
+
+@keyframes breathe {
+  0% {
+    opacity: 0.8;
+    filter: blur(10px);
+    transform: scale(0.97);
+  }
+  50% {
+    opacity: 1;
+    filter: blur(15px);
+    transform: scale(1.03);
+  }
+  100% {
+    opacity: 0.8;
+    filter: blur(10px);
+    transform: scale(0.97);
+  }
+}
+
+@keyframes scanLine {
+  0% {
+    top: 0%;
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    top: 100%;
+    opacity: 0.8;
+  }
+}
+
+/* Enhanced image display effects */
+.neon-image {
+  transition: all 0.4s ease;
+  position: relative;
+}
+
+.neon-image::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 8px;
+  box-shadow: 0 0 15px var(--neon-color, #00c2ff);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.neon-image:hover::after {
+  opacity: 1;
+}
+
+/* Neon Classes */
+.neon-text {
+  animation: text-glow 3s infinite;
+  color: white;
+}
+
+.neon-text-fast {
+  animation: text-glow 1.5s infinite;
+  color: white;
+}
+
+.neon-blue {
+  animation: neon-pulse 3s infinite;
+}
+
+.neon-purple {
+  animation: neon-pulse-purple 3s infinite;
+}
+
+.neon-green {
+  animation: neon-pulse-green 3s infinite;
+}
+
+.neon-border {
+  animation: border-glow 3s infinite;
+  border: 1px solid rgba(0, 194, 255, 0.5);
+}
+
+.breathe {
+  animation: breathe 5s infinite ease-in-out;
+}
+
+.breathe-fast {
+  animation: breathe 2s infinite ease-in-out;
+}
+
+/* Glass Morphism */
+.glass {
+  background: rgba(0, 20, 40, 0.2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-dark {
+  background: rgba(0, 10, 20, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 194, 255, 0.2);
+}
+
+/* Neural Network Line Effects */
+.neural-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 194, 255, 0.8), transparent);
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.neural-line::after {
+  content: '';
+  position: absolute;
+  height: 100%;
+  width: 30%;
+  background: rgba(255, 255, 255, 0.8);
+  top: 0;
+  left: -30%;
+  animation: neural-pulse 3s infinite;
+  filter: blur(5px);
+}
+
+@keyframes neural-pulse {
+  0% { left: -30%; }
+  100% { left: 130%; }
+}
+
 :root {
   --primary: #00C2FF;
   --primary-dark: #0084B0;

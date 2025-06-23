@@ -5,7 +5,8 @@ import { gsap } from 'gsap';
 import { safeEase } from '../utils/animationHelpers';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-// Import image assets
+// Import image assets - using direct import for Vite compatibility
+// Static imports ensure proper asset handling during build
 import wakeForm1 from '../assets/WakeForm1.png';
 import wakeForm2 from '../assets/WakeForm2.png';
 import wakeForm3 from '../assets/WakeForm3.png';
@@ -14,6 +15,12 @@ import wakeForm5 from '../assets/WakeForm5.png';
 import wakeForm6 from '../assets/WakeForm6.png';
 import wakeForm7 from '../assets/WakeForm7.png';
 
+// Verify the imports are working
+const checkImports = () => {
+  console.log('Image imports:', { wakeForm1, wakeForm2, wakeForm3, wakeForm4, wakeForm5, wakeForm6, wakeForm7 });
+};
+
+// Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger);
 
 const screenshots = [
@@ -71,6 +78,22 @@ const AppDemoSection: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState(0);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+  
+  // Debug images on component mount
+  useEffect(() => {
+    // Call the debug function to check image imports
+    checkImports();
+    setImagesLoaded(true);
+    
+    // Preload all images to ensure they're in cache
+    screenshots.forEach(screenshot => {
+      if (screenshot.image) {
+        const img = new Image();
+        img.src = screenshot.image;
+      }
+    });
+  }, []);
 
   // Colors based on animation mode
   const getColor = () => {
@@ -352,16 +375,58 @@ const AppDemoSection: React.FC = () => {
                     </p>
                   </div>
                   
-                  <div className="flex-1 flex items-center justify-center p-4">
-                    <img 
-                      src={screenshots[currentIndex].image} 
-                      alt={screenshots[currentIndex].title}
-                      className="w-full rounded-lg object-cover"
-                    />
-                    {/* Keep canvas for overlay effects */}
+                  <div className="flex-1 flex items-center justify-center p-4 relative overflow-hidden">
+                    {/* Primary image display with neon glow */}
+                    <div className="relative w-full flex justify-center items-center">
+                      {/* Neon glow background effect */}
+                      <div 
+                        className="absolute inset-0 blur-xl opacity-30 z-0" 
+                        style={{
+                          background: `radial-gradient(circle, ${getColor()} 0%, transparent 70%)`,
+                        }}
+                      />
+                      
+                      {/* The actual image with enhanced neon border */}
+                      <div className="relative z-10 w-full flex justify-center">
+                        <img 
+                          src={screenshots[currentIndex].image} 
+                          alt={screenshots[currentIndex].title}
+                          className={`rounded-lg object-contain max-h-[50vh] ${imagesLoaded ? 'opacity-100' : 'opacity-0'}`}
+                          style={{ 
+                            transition: 'all 0.5s ease',
+                            boxShadow: `0 0 20px ${getColor()}80, inset 0 0 10px ${getColor()}30`,
+                            border: `1px solid ${getColor()}60`
+                          }}
+                          onLoad={() => console.log(`Loaded image: ${screenshots[currentIndex].title}`)}
+                          onError={(e) => {
+                            console.error(`Failed to load image: ${screenshots[currentIndex].image}`);
+                            const imgElement = e.currentTarget as HTMLImageElement;
+                            imgElement.style.border = '2px solid red';
+                            imgElement.style.padding = '20px';
+                            imgElement.style.background = 'rgba(0,0,0,0.2)';
+                            imgElement.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='14' fill='%23${getColor().replace('#', '')}'%3EImage Error%3C/text%3E%3C/svg%3E`;
+                          }}
+                        />
+                      </div>
+                      
+                      {/* Animated scanner line effect */}
+                      {!reduceMotion && (
+                        <div 
+                          className="absolute z-20 w-full h-[2px] left-0 opacity-60"
+                          style={{
+                            backgroundColor: getColor(),
+                            boxShadow: `0 0 8px 2px ${getColor()}`,
+                            animation: 'scanLine 2s infinite linear',
+                            top: '0%',
+                          }}
+                        />
+                      )}
+                    </div>
+                    
+                    {/* Canvas wave overlay */}
                     <canvas 
                       ref={canvasRef} 
-                      className="absolute top-0 left-0 w-full h-full opacity-40 pointer-events-none"
+                      className="absolute top-0 left-0 w-full h-full opacity-30 pointer-events-none"
                     />
                   </div>
                   
