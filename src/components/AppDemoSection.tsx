@@ -2,11 +2,10 @@ import React, { useRef, useEffect, useState } from 'react';
 import { motion, useAnimation, useInView, AnimatePresence, Variants } from 'framer-motion';
 import { useAnimationContext } from '../contexts/AnimationContext';
 import { gsap } from 'gsap';
-import { safeEase } from '../utils/animationHelpers';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { safeEase } from '../utils/animationHelpers';
 
-// Import image assets - using direct import for Vite compatibility
-// Static imports ensure proper asset handling during build
+// Import image assets directly for Vite compatibility
 import wakeForm1 from '../assets/WakeForm1.png';
 import wakeForm2 from '../assets/WakeForm2.png';
 import wakeForm3 from '../assets/WakeForm3.png';
@@ -15,87 +14,111 @@ import wakeForm5 from '../assets/WakeForm5.png';
 import wakeForm6 from '../assets/WakeForm6.png';
 import wakeForm7 from '../assets/WakeForm7.png';
 
-// Verify the imports are working
-const checkImports = () => {
-  console.log('Image imports:', { wakeForm1, wakeForm2, wakeForm3, wakeForm4, wakeForm5, wakeForm6, wakeForm7 });
-};
-
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger);
 
+// App screenshots data
 const screenshots = [
   {
     id: 1,
     title: 'Morning Alarm',
-    description: 'Gentle awakening with increasing intensity',
+    description: 'Gentle awakening with delta waves',
     image: wakeForm1
   },
   {
     id: 2,
     title: 'Voice Affirmations',
-    description: 'Record your own motivation',
+    description: 'Program your mind with your own voice',
     image: wakeForm2
   },
   {
     id: 3,
     title: 'Meditation Flow',
-    description: 'Transition from alarm to calm',
+    description: 'Guided neural programming sessions',
     image: wakeForm3
   },
   {
     id: 4,
     title: 'Sleep Programming',
-    description: 'Subconscious integration',
+    description: 'Subconscious integration during rest',
     image: wakeForm4
   },
   {
     id: 5,
     title: 'Custom Prompts',
-    description: 'Design your mental programming',
+    description: 'Design mental programming commands',
     image: wakeForm5
   },
   {
     id: 6,
     title: 'Track Progress',
-    description: 'Monitor your mental growth',
+    description: 'Monitor your neural optimization',
     image: wakeForm6
   },
   {
     id: 7,
     title: 'Advanced Settings',
-    description: 'Tune your experience',
+    description: 'Fine-tune your mind interface',
     image: wakeForm7
   }
 ];
 
 const AppDemoSection: React.FC = () => {
-  const { animationMode, mousePosition, reduceMotion } = useAnimationContext();
+  const { animationMode, reduceMotion } = useAnimationContext();
   const containerRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const timeRef = useRef<number>(0);
   const inView = useInView(containerRef, { once: false, amount: 0.3 });
   const controls = useAnimation();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState(0);
   const [imagesLoaded, setImagesLoaded] = useState(false);
   
-  // Debug images on component mount
+  // Debug image loading
   useEffect(() => {
-    // Call the debug function to check image imports
-    checkImports();
-    setImagesLoaded(true);
-    
-    // Preload all images to ensure they're in cache
-    screenshots.forEach(screenshot => {
-      if (screenshot.image) {
-        const img = new Image();
-        img.src = screenshot.image;
-      }
+    console.log('Image imports loaded:', { 
+      wakeForm1, wakeForm2, wakeForm3, 
+      wakeForm4, wakeForm5, wakeForm6, wakeForm7 
     });
+    
+    // Preload images to ensure they're cached
+    const preloadImages = async () => {
+      try {
+        const imagePromises = screenshots.map((screenshot) => {
+          return new Promise<void>((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+              console.log(`Preloaded: ${screenshot.title}`);
+              resolve();
+            };
+            img.onerror = () => {
+              console.error(`Failed to load: ${screenshot.title}`);
+              reject();
+            };
+            img.src = screenshot.image;
+          });
+        });
+        
+        await Promise.all(imagePromises);
+        setImagesLoaded(true);
+      } catch (err) {
+        console.error('Image preloading error:', err);
+      }
+    };
+    
+    preloadImages();
   }, []);
+  
+  // Animation trigger based on scroll position
+  useEffect(() => {
+    if (inView) {
+      controls.start('visible');
+    } else {
+      controls.start('hidden');
+    }
+  }, [controls, inView]);
 
-  // Colors based on animation mode
+  // Get color based on animation mode
   const getColor = () => {
     switch(animationMode) {
       case 'chill':
@@ -108,13 +131,85 @@ const AppDemoSection: React.FC = () => {
         return '#00C2FF';
     }
   };
-
-  // Animation for the frame bobbing
+  
+  // Time-based animation updates
+  useEffect(() => {
+    let frameId: number;
+    let lastTime = 0;
+    
+    const animate = (time: number) => {
+      const delta = (time - lastTime) / 1000;
+      lastTime = time;
+      
+      timeRef.current += delta * (animationMode === 'energize' ? 1.5 : 
+                                 animationMode === 'focus' ? 1 : 0.7);
+      
+      if (canvasRef.current) {
+        drawCanvas();
+      }
+      
+      frameId = requestAnimationFrame(animate);
+    };
+    
+    if (!reduceMotion) {
+      frameId = requestAnimationFrame(animate);
+    }
+    
+    return () => {
+      cancelAnimationFrame(frameId);
+    };
+  }, [animationMode, reduceMotion]);
+  
+  // Canvas drawing for digital wave effect
+  const drawCanvas = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    // Ensure canvas is sized correctly
+    if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+    }
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    const time = timeRef.current;
+    const color = getColor();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    
+    // Draw digital waveform
+    ctx.beginPath();
+    
+    for (let x = 0; x < canvas.width; x += 10) {
+      const progress = x / canvas.width;
+      const amplitude = 5 + Math.sin(time * 0.5) * 3;
+      const frequency = 30 + Math.cos(time * 0.3) * 10;
+      
+      const y = canvas.height * 0.5 + 
+        Math.sin(progress * frequency + time) * amplitude * 
+        Math.sin(progress * 2 + time * 0.5) * 3;
+        
+      if (x === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    }
+    
+    ctx.stroke();
+  };
+  
+  // Frame bobbing animation
   useEffect(() => {
     if (!reduceMotion && frameRef.current) {
       const floatAnimation = gsap.to(frameRef.current, {
         y: '+=15',
-        duration: animationMode === 'chill' ? 3 : animationMode === 'focus' ? 2 : 1.5,
+        duration: animationMode === 'chill' ? 3 : 
+                  animationMode === 'focus' ? 2 : 1.5,
         ease: 'sine.inOut',
         repeat: -1,
         yoyo: true,
@@ -125,151 +220,8 @@ const AppDemoSection: React.FC = () => {
       };
     }
   }, [animationMode, reduceMotion]);
-
-  // Canvas animation for the alarm waveform
-  useEffect(() => {
-    if (canvasRef.current && inView) {
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext('2d');
-      let animationId: number;
-      
-      if (!ctx) return;
-      
-      const resizeCanvas = () => {
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
-      };
-      
-      resizeCanvas();
-      window.addEventListener('resize', resizeCanvas);
-      
-      const speed = animationMode === 'chill' ? 0.5 : animationMode === 'focus' ? 1 : 1.5;
-      let phase = 0;
-      
-      const draw = () => {
-        if (!ctx) return;
-        
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.beginPath();
-        
-        const color = getColor();
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 3;
-        
-        const amplitude = currentIndex === 0 ? 30 : currentIndex === 1 ? 20 : 10;
-        const frequency = currentIndex === 0 ? 0.02 : currentIndex === 1 ? 0.05 : 0.03;
-        
-        for (let x = 0; x < canvas.width; x++) {
-          const y = amplitude * Math.sin((x * frequency) + phase) + canvas.height / 2;
-          if (x === 0) {
-            ctx.moveTo(x, y);
-          } else {
-            ctx.lineTo(x, y);
-          }
-        }
-        
-        ctx.stroke();
-        phase += 0.05 * speed;
-        animationId = requestAnimationFrame(draw);
-      };
-      
-      draw();
-      
-      return () => {
-        window.removeEventListener('resize', resizeCanvas);
-        if (animationId) cancelAnimationFrame(animationId);
-      };
-    }
-  }, [canvasRef, inView, animationMode, currentIndex]);
-
-  // Animation for section entrance
-  useEffect(() => {
-    if (inView) {
-      controls.start('visible');
-    }
-  }, [controls, inView]);
-
-  // Handle frame distortion on click
-  const handleFrameClick = () => {
-    if (frameRef.current && !isDragging) {
-      gsap.to(frameRef.current, {
-        scale: 1.05,
-        boxShadow: `0 0 30px ${getColor()}`,
-        duration: 0.2,
-        onComplete: () => {
-          gsap.to(frameRef.current, {
-            scale: 1,
-            boxShadow: `0 0 15px ${getColor()}`,
-            duration: 0.5
-          });
-        }
-      });
-    }
-  };
-
-  // Carousel controls
-  const handleDragStart = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
-    setIsDragging(true);
-    if ('touches' in e) {
-      setDragStart(e.touches[0].clientX);
-    } else {
-      setDragStart(e.clientX);
-    }
-  };
-
-  const handleDragMove = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
-    if (!isDragging) return;
-    
-    let currentX;
-    if ('touches' in e) {
-      currentX = e.touches[0].clientX;
-    } else {
-      currentX = e.clientX;
-    }
-
-    const diff = dragStart - currentX;
-    if (Math.abs(diff) > 50) {
-      if (diff > 0 && currentIndex < screenshots.length - 1) {
-        setCurrentIndex(currentIndex + 1);
-        setIsDragging(false);
-      } else if (diff < 0 && currentIndex > 0) {
-        setCurrentIndex(currentIndex - 1);
-        setIsDragging(false);
-      }
-    }
-  };
-
-  const handleDragEnd = () => {
-    setIsDragging(false);
-  };
-
-  // Frame distortion effect following mouse
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!frameRef.current || reduceMotion) return;
-    
-    const { left, top, width, height } = frameRef.current.getBoundingClientRect();
-    const x = (e.clientX - left) / width - 0.5;
-    const y = (e.clientY - top) / height - 0.5;
-    
-    gsap.to(frameRef.current, {
-      rotateY: x * 5,
-      rotateX: -y * 5,
-      duration: 0.5,
-      ease: 'power1.out'
-    });
-  };
-
-  const handleMouseLeave = () => {
-    if (!frameRef.current) return;
-    
-    gsap.to(frameRef.current, {
-      rotateY: 0,
-      rotateX: 0,
-      duration: 0.5,
-      ease: 'power1.out'
-    });
-  };
-
+  
+  // Animation variants
   const containerVariants: Variants = {
     hidden: { opacity: 0, y: 50 },
     visible: { 
@@ -292,10 +244,22 @@ const AppDemoSection: React.FC = () => {
         duration: 0.6, 
         ease: safeEase
       }
+    }
+  };
+
+  const imageVariants: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1,
+      y: 0,
+      transition: { 
+        duration: 0.5,
+        ease: safeEase
+      }
     },
     exit: {
       opacity: 0,
-      scale: 0.9,
+      y: -20,
       transition: {
         duration: 0.3,
         ease: safeEase
@@ -304,11 +268,20 @@ const AppDemoSection: React.FC = () => {
   };
 
   const dotVariants: Variants = {
-    inactive: { scale: 1, opacity: 0.5 },
+    inactive: { 
+      scale: 1, 
+      opacity: 0.5,
+      backgroundColor: 'rgba(255, 255, 255, 0.3)'
+    },
     active: { 
       scale: 1.3, 
       opacity: 1,
-      backgroundColor: getColor()
+      backgroundColor: getColor(),
+      boxShadow: `0 0 5px 1px ${getColor()}`,
+      transition: {
+        duration: 0.3,
+        ease: safeEase
+      }
     }
   };
 
@@ -328,116 +301,188 @@ const AppDemoSection: React.FC = () => {
             visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: safeEase } }
           }}
         >
-          <span className="neon-text" style={{ color: getColor() }}>Experience</span> the App
+          <span className="inline-block" style={{ color: getColor() }}>
+            Mind
+          </span>{' '}
+          <span className="inline-block">
+            Programming
+          </span>{' '}
+          <span className="inline-block">
+            Interface
+          </span>
         </motion.h2>
-
+        
         <motion.div 
-          className="max-w-md mx-auto"
+          className="max-w-4xl mx-auto"
           variants={{
             hidden: { opacity: 0 },
-            visible: { opacity: 1, transition: { ease: safeEase } }
+            visible: { opacity: 1, transition: { duration: 0.5, ease: safeEase } }
           }}
         >
           <div 
-            className="relative rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-b from-gray-800 to-black"
-            style={{ 
-              boxShadow: `0 0 15px ${getColor()}`,
-              transition: "box-shadow 0.5s ease"
-            }}
             ref={frameRef}
-            onClick={handleFrameClick}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-            onMouseDown={handleDragStart}
-
-            onMouseUp={handleDragEnd}
-            onTouchStart={handleDragStart}
-            onTouchMove={handleDragMove}
-            onTouchEnd={handleDragEnd}
+            className="relative rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-b from-gray-900 to-black"
+            style={{ 
+              boxShadow: `0 0 30px ${getColor()}40, 0 0 15px ${getColor()}30`
+            }}
           >
-            {/* App screenshot mockup */}
-            <div className="aspect-[9/16] w-full p-4">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentIndex}
-                  variants={frameVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  className="h-full rounded-2xl flex flex-col bg-gradient-to-b from-gray-900 to-black overflow-hidden"
-                >
-                  <div className="p-4 border-b border-gray-800">
-                    <h3 className="text-xl font-semibold" style={{ color: getColor() }}>
-                      {screenshots[currentIndex].title}
-                    </h3>
-                    <p className="text-sm opacity-70">
-                      {screenshots[currentIndex].description}
-                    </p>
+            {/* Terminal-style header */}
+            <div className="bg-gray-900 border-b border-gray-800 px-4 py-3 flex items-center">
+              <div className="flex space-x-2">
+                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+              </div>
+              <div className="text-center flex-grow font-mono text-xs font-medium">
+                wake-form@user:~$ <span style={{ color: getColor() }}>view {screenshots[currentIndex].title.toLowerCase().replace(' ', '-')}.exe</span>
+              </div>
+            </div>
+            
+            {/* Content area */}
+            <div className="flex flex-col md:flex-row">
+              {/* Left side - description */}
+              <div className="p-5 md:p-8 md:w-1/3 flex flex-col justify-between border-r border-gray-800">
+                <div>
+                  <h3 className="text-xl font-bold mb-2" style={{ color: getColor() }}>
+                    {screenshots[currentIndex].title}
+                  </h3>
+                  <p className="text-gray-400 mb-4 font-mono text-sm">
+                    <span className="text-gray-500">// </span>
+                    {screenshots[currentIndex].description}
+                  </p>
+                  <div className="font-mono text-xs text-gray-500 mt-4">
+                    <div>neural_map.load("brainwave_delta")</div>
+                    <div>frequency = <span style={{ color: getColor() }}>34.7</span></div>
+                    <div>amplitude = <span style={{ color: getColor() }}>0.88</span></div>
                   </div>
-                  
-                  <div className="flex-1 flex items-center justify-center p-4 relative">
-                    {/* Simple PNG display with neon glow */}
-                    <div className="w-full h-full flex items-center justify-center">
+                </div>
+                
+                <div className="hidden md:block text-xs text-gray-500 mt-6 font-mono">
+                  <div>System: WakeForm OS v2.0</div>
+                  <div>Process: <span style={{ color: getColor() }}>{currentIndex + 1}</span> of <span style={{ color: getColor() }}>{screenshots.length}</span></div>
+                </div>
+              </div>
+              
+              {/* Right side - image display */}
+              <div className="relative flex-1 flex items-center justify-center p-4 bg-black overflow-hidden">
+                {/* Background glow effect */}
+                <div 
+                  className="absolute inset-0 opacity-20" 
+                  style={{ 
+                    background: `radial-gradient(circle at center, ${getColor()}30 0%, transparent 70%)` 
+                  }}
+                />
+                
+                {/* Image display with border glow */}
+                <div className="relative z-10 w-full flex justify-center">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={`image-${currentIndex}`}
+                      className="relative rounded-lg overflow-hidden"
+                      variants={imageVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      style={{
+                        boxShadow: `0 0 20px ${getColor()}40`,
+                        border: `1px solid ${getColor()}`
+                      }}
+                    >
                       <img 
                         src={screenshots[currentIndex].image} 
                         alt={screenshots[currentIndex].title}
-                        className="max-w-full max-h-[60vh] rounded-lg shadow-xl"
-                        style={{ 
-                          boxShadow: `0 0 20px ${getColor()}80`,
-                          border: `1px solid ${getColor()}`
+                        className="max-w-full max-h-[50vh] object-contain"
+                        style={{
+                          filter: `drop-shadow(0 0 5px ${getColor()}30)`
                         }}
+                        onLoad={() => console.log(`Loaded image: ${screenshots[currentIndex].title}`)}
                         onError={(e) => {
                           console.error(`Failed to load image: ${screenshots[currentIndex].image}`);
                           const imgElement = e.currentTarget as HTMLImageElement;
                           imgElement.style.border = '2px solid red';
+                          imgElement.style.padding = '20px';
+                          imgElement.style.background = 'rgba(0,0,0,0.4)';
                         }}
                       />
-                    </div>
-                    
-                    {/* Keep canvas for overlay effects */}
-                    <canvas 
-                      ref={canvasRef} 
-                      className="absolute top-0 left-0 w-full h-full opacity-30 pointer-events-none"
+                      
+                      {/* Scan line effect */}
+                      {!reduceMotion && (
+                        <div className="absolute inset-0 pointer-events-none" style={{
+                          background: `repeating-linear-gradient(
+                            transparent,
+                            transparent 2px,
+                            rgba(0, 0, 0, 0.05) 3px,
+                            rgba(0, 0, 0, 0.05) 3px
+                          )`
+                        }} />
+                      )}
+                      
+                      {/* Moving scanner line */}
+                      {!reduceMotion && (
+                        <div 
+                          className="absolute left-0 right-0 h-[2px] z-10"
+                          style={{
+                            background: getColor(),
+                            boxShadow: `0 0 8px ${getColor()}`,
+                            animation: 'scanLine 2s linear infinite',
+                          }}
+                        />
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+                
+                {/* Canvas overlay for wave effect */}
+                <canvas 
+                  ref={canvasRef} 
+                  className="absolute top-0 left-0 w-full h-full opacity-30 pointer-events-none"
+                />
+              </div>
+            </div>
+            
+            {/* Terminal-style footer with navigation */}
+            <div className="bg-gray-900 border-t border-gray-800 px-4 py-3">
+              <div className="flex justify-between items-center">
+                <button 
+                  className="px-3 py-1 rounded bg-gray-800 text-xs font-mono hover:bg-gray-700 transition-colors"
+                  onClick={() => setCurrentIndex(prev => prev === 0 ? screenshots.length - 1 : prev - 1)}
+                >
+                  <span style={{ color: getColor() }}>←</span> prev
+                </button>
+                
+                <div className="flex space-x-2">
+                  {screenshots.map((_, index) => (
+                    <motion.div
+                      key={index}
+                      className="h-2 w-2 rounded-full cursor-pointer"
+                      variants={dotVariants}
+                      animate={currentIndex === index ? "active" : "inactive"}
+                      onClick={() => setCurrentIndex(index)}
+                      whileHover={{ scale: 1.5 }}
                     />
-                  </div>
-                  
-                  <div className="p-4 flex justify-between items-center">
-                    <div className="text-sm font-medium" style={{ color: getColor() }}>
-                      Wake Form v2.0
-                    </div>
-                    <div className="h-8 w-8 flex items-center justify-center rounded-full bg-opacity-50" style={{ backgroundColor: `${getColor()}30` }}>
-                      <div className="h-2 w-2 rounded-full" style={{ backgroundColor: getColor() }}></div>
-                    </div>
-                  </div>
-                </motion.div>
-              </AnimatePresence>
+                  ))}
+                </div>
+                
+                <button 
+                  className="px-3 py-1 rounded bg-gray-800 text-xs font-mono hover:bg-gray-700 transition-colors"
+                  onClick={() => setCurrentIndex(prev => (prev + 1) % screenshots.length)}
+                >
+                  next <span style={{ color: getColor() }}>→</span>
+                </button>
+              </div>
             </div>
           </div>
-          
-          {/* Carousel navigation dots */}
-          <div className="flex justify-center mt-8 space-x-3">
-            {screenshots.map((_, index) => (
-              <motion.div
-                key={index}
-                className="h-3 w-3 rounded-full bg-white bg-opacity-50 cursor-pointer"
-                variants={dotVariants}
-                animate={currentIndex === index ? "active" : "inactive"}
-                onClick={() => setCurrentIndex(index)}
-                whileHover={{ scale: 1.2 }}
-              />
-            ))}
-          </div>
-        
-          <motion.p 
-            className="text-center mt-8 text-gray-300 max-w-xs mx-auto"
-            variants={{
-              hidden: { opacity: 0, y: 20 },
-              visible: { opacity: 1, y: 0, transition: { duration: 0.6, delay: 0.3, ease: safeEase } }
-            }}
-          >
-            Swipe or drag to explore app features. Tap screen to see animation effects.
-          </motion.p>
         </motion.div>
+        
+        <motion.p 
+          className="text-center mt-8 text-gray-400 max-w-md mx-auto font-mono text-xs"
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            visible: { opacity: 1, y: 0, transition: { duration: 0.6, delay: 0.3, ease: safeEase } }
+          }}
+        >
+          <span style={{ color: getColor() }}>$</span> Neural programming interface optimized for subconscious integration.
+        </motion.p>
       </motion.div>
     </section>
   );
