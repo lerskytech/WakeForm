@@ -16,10 +16,13 @@ const HeroSection: React.FC = () => {
   const textRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
+  const neuralLinesRef = useRef<HTMLDivElement>(null);
+  const glitchRef = useRef<HTMLDivElement>(null);
 
   // Letter-by-letter animation for main title
   const titleText = "WAKE FORM";
-  const subtitleText = "Form Your Wake, Transform Your Day";
+  const subtitleText = "// Program Your Mind, Hack Your Reality";
+  const commandLinePrefix = "> run mental.init();";
 
   const titleVariants: Variants = {
     hidden: { opacity: 0 },
@@ -116,6 +119,45 @@ const HeroSection: React.FC = () => {
         }
       }
     );
+
+    // Neural network line animations
+    if (neuralLinesRef.current) {
+      const lines = neuralLinesRef.current.querySelectorAll('.neural-line');
+      
+      gsap.fromTo(lines, 
+        { width: 0, opacity: 0 },
+        {
+          width: '100%',
+          opacity: 1,
+          duration: 1.5,
+          stagger: 0.2,
+          ease: 'power2.out',
+        }
+      );
+    }
+
+    // Occasional glitch effect animation
+    const runGlitch = () => {
+      if (glitchRef.current) {
+        gsap.to(glitchRef.current, {
+          opacity: 1,
+          duration: 0.1,
+          onComplete: () => {
+            gsap.to(glitchRef.current, {
+              opacity: 0,
+              duration: 0.1
+            });
+          }
+        });
+      }
+    };
+
+    // Random glitch intervals
+    const glitchInterval = setInterval(() => {
+      if (Math.random() > 0.7) runGlitch();
+    }, 2000);
+
+    return () => clearInterval(glitchInterval);
   }, [controls, reduceMotion]);
 
   // Dynamic color based on animation mode
@@ -181,17 +223,37 @@ const HeroSection: React.FC = () => {
   return (
     <section 
       ref={sectionRef}
-      className="hero-section relative h-screen flex flex-col items-center justify-center overflow-hidden"
+      className="hero-section relative h-screen flex flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-black to-[#001530]"
       style={{ perspective: '1000px' }}
     >
+      {/* Neural network background lines */}
+      <div ref={neuralLinesRef} className="absolute inset-0 flex flex-col justify-between py-20 px-10 pointer-events-none overflow-hidden opacity-70">
+        {[...Array(15)].map((_, i) => (
+          <div key={i} className="neural-line my-1"></div>
+        ))}
+      </div>
+
+      {/* Glitch overlay effect */}
+      <div 
+        ref={glitchRef} 
+        className="absolute inset-0 bg-[#00C2FF] opacity-0 mix-blend-screen pointer-events-none" 
+        style={{ clipPath: 'polygon(0 25%, 100% 0%, 100% 77%, 0% 100%)' }}
+      ></div>
+
+      {/* Command line interface element */}
+      <div className="absolute top-10 left-10 glass-dark p-3 rounded max-w-md border-l-4" style={{ borderColor: '#00C2FF' }}>
+        <p className="text-[#00C2FF] font-mono text-sm">{commandLinePrefix}</p>
+        <p className="text-white font-mono text-xs opacity-60 mt-1">// Process initiated. Neural interface online.</p>
+      </div>
       {/* Main Hero Title */}
       <motion.h1 
         ref={textRef}
-        className={`text-8xl md:text-9xl font-bold tracking-tight ${colors.primary} neon-text hero-text stagger-text`}
+        className={`text-8xl md:text-9xl font-bold tracking-tight ${colors.primary} hero-text stagger-text neon-text breathe`}
         style={{ 
-          textShadow: `0 0 10px ${animationMode === 'chill' ? '#80E1FF' : animationMode === 'focus' ? '#FFFFFF' : '#80FFD8'}`,
-          filter: `brightness(${1 + intensity * 0.2})`,
-          willChange: 'transform'
+          textShadow: `0 0 15px ${animationMode === 'chill' ? '#80E1FF' : animationMode === 'focus' ? '#FFFFFF' : '#80FFD8'}`,
+          filter: `brightness(${1 + intensity * 0.3}) contrast(1.1)`,
+          willChange: 'transform',
+          fontFamily: 'monospace'
         }}
         variants={titleVariants}
         initial="hidden"
@@ -211,13 +273,38 @@ const HeroSection: React.FC = () => {
       {/* Subtitle */}
       <motion.p 
         ref={subtitleRef}
-        className="text-xl md:text-2xl mt-6 text-accent-blue font-light tracking-wide"
+        className="text-xl md:text-2xl mt-6 text-accent-blue font-mono tracking-wide neon-text-fast"
         variants={subtitleVariants}
         initial="hidden"
         animate={controls}
       >
         {subtitleText}
       </motion.p>
+      
+      {/* Digital circuit lines */}
+      <div className="w-40 h-20 absolute top-1/2 transform -translate-y-1/2 -left-10 opacity-80 pointer-events-none">
+        <svg viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0 25 L40 25 L40 10 L70 10 L70 40 L100 40" 
+                fill="none" 
+                stroke="#00C2FF" 
+                strokeWidth="1" 
+                className="neon-blue">
+            <animate attributeName="stroke-dasharray" from="0,200" to="200,0" dur="2s" repeatCount="indefinite" />
+          </path>
+        </svg>
+      </div>
+      
+      <div className="w-40 h-20 absolute top-1/2 transform -translate-y-1/2 -right-10 opacity-80 pointer-events-none">
+        <svg viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">
+          <path d="M100 25 L60 25 L60 40 L30 40 L30 10 L0 10" 
+                fill="none" 
+                stroke="#00FFB2" 
+                strokeWidth="1" 
+                className="neon-green">
+            <animate attributeName="stroke-dasharray" from="0,200" to="200,0" dur="2s" repeatCount="indefinite" />
+          </path>
+        </svg>
+      </div>
       
       {/* CTA Button */}
       <motion.div 
@@ -229,19 +316,25 @@ const HeroSection: React.FC = () => {
         whileHover="hover"
         whileTap="tap"
       >
-        <button className={`relative px-8 py-4 overflow-hidden rounded-lg bg-background/30 backdrop-blur-md ${colors.border} border-2 group`}>
+        <button className={`relative px-8 py-4 overflow-hidden rounded-lg glass-dark backdrop-blur-md neon-border group`}>
           {/* Animated gradient background */}
           <div className={`absolute inset-0 w-full h-full bg-gradient-to-br ${colors.glow} to-transparent opacity-50 
                           group-hover:opacity-75 transition-opacity duration-300 animate-pulse-slow`}>
           </div>
           
           {/* Button text with flicker effect */}
-          <span className={`relative font-medium text-lg ${colors.primary} group-hover:animate-flicker tracking-widest`}>
-            MAKE AN OFFER
+          <span className={`relative font-mono text-lg text-[#00C2FF] group-hover:animate-flicker tracking-widest neon-text-fast`}>
+            $ EXECUTE program
           </span>
           
           {/* Ripple effect on hover (added via JS) */}
           <div className="ripple-container absolute inset-0 pointer-events-none"></div>
+          
+          {/* Corner brackets */}
+          <span className="absolute top-0 left-0 h-2 w-2 border-t-2 border-l-2 border-[#00C2FF] neon-blue"></span>
+          <span className="absolute top-0 right-0 h-2 w-2 border-t-2 border-r-2 border-[#00C2FF] neon-blue"></span>
+          <span className="absolute bottom-0 left-0 h-2 w-2 border-b-2 border-l-2 border-[#00C2FF] neon-blue"></span>
+          <span className="absolute bottom-0 right-0 h-2 w-2 border-b-2 border-r-2 border-[#00C2FF] neon-blue"></span>
         </button>
       </motion.div>
 

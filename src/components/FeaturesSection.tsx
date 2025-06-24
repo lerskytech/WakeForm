@@ -1,9 +1,10 @@
-import React, { useRef, useEffect } from 'react';
-import { motion, useAnimation as useFramerAnimation, Variants } from 'framer-motion';
+import React, { useRef, useEffect, useState } from 'react';
+import { motion, useAnimation, Variants } from 'framer-motion';
 import { useAnimationContext } from '../contexts/AnimationContext';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { safeSpring, safeEase } from '../utils/animationHelpers';
+import { safeSpring, safeEase, fadeIn } from '../utils/animationHelpers';
+import { AnimationMode } from '../types';
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger);
@@ -19,7 +20,8 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ title, description, index }) 
   const { animationMode, reduceMotion } = useAnimationContext();
   const cardRef = useRef<HTMLDivElement>(null);
   const waveCanvasRef = useRef<HTMLCanvasElement>(null);
-  const animationControls = useFramerAnimation();
+  const animationControls = useAnimation();
+  const [isHovered, setIsHovered] = useState(false);
 
   // Animation variants for cards
   const cardVariants: Variants = {
@@ -52,14 +54,18 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ title, description, index }) 
           primary: '#00C2FF',
           secondary: '#0084B0',
           highlight: '#80E1FF',
-          bg: 'rgba(0, 20, 36, 0.5)'
+          bg: 'rgba(0, 20, 36, 0.5)',
+          borderClass: 'blue',
+          textClass: 'blue'
         };
       case 'focus':
         return {
           primary: '#FFFFFF',
           secondary: '#E0F7FF',
           highlight: '#FFFFFF',
-          bg: 'rgba(0, 37, 72, 0.5)'
+          bg: 'rgba(0, 37, 72, 0.5)',
+          borderClass: 'purple',
+          textClass: 'purple'
         };
       case 'energize':
       default:
@@ -67,7 +73,9 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ title, description, index }) 
           primary: '#00FFB2',
           secondary: '#00B37E',
           highlight: '#80FFD8',
-          bg: 'rgba(0, 59, 109, 0.5)'
+          bg: 'rgba(0, 59, 109, 0.5)',
+          borderClass: 'green',
+          textClass: 'green'
         };
     }
   };
@@ -220,17 +228,42 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ title, description, index }) 
     };
   }, [animationMode, reduceMotion, animationControls, title]);
 
+  // Neural circuit animation on hover
+  useEffect(() => {
+    if (!cardRef.current || reduceMotion) return;
+    
+    const colors = getColors();
+    
+    if (isHovered) {
+      // Add pulsating glow when hovered
+      gsap.to(cardRef.current, {
+        boxShadow: `0 0 20px ${colors.primary}`, 
+        duration: 0.5,
+        repeat: -1,
+        yoyo: true
+      });
+    } else {
+      // Reset card glow
+      gsap.killTweensOf(cardRef.current);
+      gsap.to(cardRef.current, {
+        boxShadow: '0 0 0 rgba(0,0,0,0)', 
+        duration: 0.3
+      });
+    }
+  }, [isHovered, reduceMotion]);
+
   return (
-    <motion.div 
+    <motion.div
       ref={cardRef}
-      className="feature-card rounded-xl p-1 backdrop-blur-md relative overflow-hidden"
+      className={`feature-card glass-dark p-6 rounded-xl border-t border-l border-r border-b-2 border-${getColors().borderClass} relative overflow-hidden`}
       variants={cardVariants}
       initial="hidden"
       animate={animationControls}
-      whileHover={reduceMotion ? undefined : "hover"}
+      whileHover="hover"
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
       style={{
-        background: `linear-gradient(45deg, ${getColors().primary}22, ${getColors().secondary}11)`,
-        borderRadius: '16px',
+        filter: isHovered ? `drop-shadow(0 0 8px ${getColors().primary})` : 'none'
       }}
     >
       {/* Animated border */}
@@ -238,82 +271,28 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ title, description, index }) 
         style={{ borderColor: getColors().primary, boxShadow: `0 0 15px ${getColors().primary}44` }}
       ></div>
 
-      {/* Background wave animation */}
-      <canvas 
-        ref={waveCanvasRef} 
-        className="absolute inset-0 w-full h-full opacity-30"
-        style={{ mixBlendMode: 'screen' }}
-      ></canvas>
+      {/* Corner accents with animated neon glow */}
+      <div className={`absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 neon-${animationMode === 'chill' ? 'blue' : animationMode === 'focus' ? 'purple' : 'green'}`}></div>
+      <div className={`absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 neon-${animationMode === 'chill' ? 'blue' : animationMode === 'focus' ? 'purple' : 'green'}`}></div>
+      <div className={`absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 neon-${animationMode === 'chill' ? 'blue' : animationMode === 'focus' ? 'purple' : 'green'}`}></div>
+      <div className={`absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 neon-${animationMode === 'chill' ? 'blue' : animationMode === 'focus' ? 'purple' : 'green'}`}></div>
 
-      {/* Card content */}
-      <div className="p-6 z-10 relative h-full flex flex-col items-center justify-center text-center">
-        <h3 
-          className="text-2xl font-semibold mb-4 tracking-wide animate-pulse-slow"
-          style={{ color: getColors().highlight }}
-        >
-          {title}
-        </h3>
-        <p className="text-accent-blue opacity-90">
-          {description}
-        </p>
-        
-        {/* Feature-specific visualizations */}
-        {title === "Affirmation Voices" && (
-          <div className="mt-4 relative w-3/4 h-10">
-            <div className="absolute inset-0 flex items-center justify-center space-x-1">
-              {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-                <div
-                  key={i}
-                  className="w-1 rounded-full animate-pulse-slow"
-                  style={{
-                    height: `${20 + Math.sin(i * 0.9) * 15}px`,
-                    backgroundColor: getColors().highlight,
-                    animationDelay: `${i * 0.1}s`,
-                  }}
-                ></div>
-              ))}
-            </div>
-          </div>
-        )}
-        
-        {title === "Meditation Tracks" && (
-          <div className="mt-4 relative w-3/4 h-10">
-            <div 
-              className="absolute inset-0 animate-breathe" 
-              style={{ animationDuration: '8s' }}
-            >
-              <svg viewBox="0 0 100 20" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M0 10 Q 25 0, 50 10 T 100 10"
-                  fill="none"
-                  stroke={getColors().highlight}
-                  strokeWidth="1"
-                  className="animate-pulse-slow"
-                  style={{ animationDuration: '5s' }}
-                />
-              </svg>
-            </div>
-          </div>
-        )}
-        
-        {title === "Alarm Reliability" && (
-          <div className="mt-4 relative w-3/4 h-10 flex items-center justify-center">
-            <div className="digital-clock font-mono text-lg font-bold" style={{ color: getColors().highlight }}>
-              <motion.span
-                animate={{
-                  opacity: [1, 1, 0, 0],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  repeatType: "reverse",
-                }}
-              >
-                07:00
-              </motion.span>
-            </div>
-          </div>
-        )}
+      {/* Command line style header */}
+      <div className="flex items-center mb-2">
+        <div className={`w-3 h-3 rounded-full mr-2 neon-${animationMode === 'chill' ? 'blue' : animationMode === 'focus' ? 'purple' : 'green'}`}></div>
+        <code className={`text-${getColors().textClass} text-xs font-mono`}>~ $ mind_module.load()</code>
+      </div>
+
+      <h3 className={`text-xl font-bold mb-3 text-${getColors().textClass} neon-text-fast font-mono`}>{title}</h3>
+      <div className={`w-12 h-1 bg-${getColors().primary} mb-4 neural-line`}></div>
+      <p className="text-gray-300 font-mono text-sm">{description}</p>
+
+      {/* Hidden canvas for wave animation */}
+      <canvas ref={waveCanvasRef} className="absolute bottom-0 left-0 w-full h-1/4 opacity-50" />
+      
+      {/* Terminal cursor blinking effect */}
+      <div className="absolute bottom-3 right-3">
+        <div className={`h-4 w-2 bg-${getColors().primary} animate-blink`}></div>
       </div>
     </motion.div>
   );
@@ -322,7 +301,44 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ title, description, index }) 
 const FeaturesSection: React.FC = () => {
   const { animationMode, reduceMotion } = useAnimationContext();
   const sectionRef = useRef<HTMLElement>(null);
-  const controls = useFramerAnimation();
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const subheadingRef = useRef<HTMLParagraphElement>(null);
+  const featuresRef = useRef<HTMLDivElement>(null);
+  const animationControls = useAnimation();
+  
+  // Get colors based on current mode
+  const getColors = () => {
+    switch (animationMode) {
+      case 'chill':
+        return {
+          primary: '#00C2FF',
+          secondary: '#E0F7FF',
+          highlight: '#80E1FF',
+          bg: 'rgba(0, 20, 36, 0.5)',
+          borderClass: 'blue',
+          textClass: 'blue'
+        };
+      case 'focus':
+        return {
+          primary: '#9200FF',
+          secondary: '#E0F7FF',
+          highlight: '#FFFFFF',
+          bg: 'rgba(0, 37, 72, 0.5)',
+          borderClass: 'purple',
+          textClass: 'purple'
+        };
+      case 'energize':
+      default:
+        return {
+          primary: '#00FFB2',
+          secondary: '#00B37E',
+          highlight: '#80FFD8',
+          bg: 'rgba(0, 59, 109, 0.5)',
+          borderClass: 'green',
+          textClass: 'green'
+        };
+    }
+  };
 
   // Features content
   const features = [
@@ -344,26 +360,69 @@ const FeaturesSection: React.FC = () => {
   useEffect(() => {
     if (!sectionRef.current || reduceMotion) return;
     
-    // Animate section title
-    const titleElement = sectionRef.current.querySelector('.section-title');
-    
-    gsap.fromTo(
-      titleElement, 
-      { y: 50, opacity: 0 },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 0.8,
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top bottom-=100",
-          end: "top center",
-          toggleActions: "play none none reverse",
-          onEnter: () => controls.start("visible")
-        }
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: sectionRef.current,
+        start: "top bottom-=100",
+        end: "top center",
+        toggleActions: "play none none reverse",
+        onEnter: () => animationControls.start("visible")
       }
-    );
-  }, [controls, reduceMotion]);
+    });
+
+    // Add neural network line animations
+    const neuralLines = document.querySelectorAll('.neural-line');
+    if (neuralLines.length > 0) {
+      gsap.fromTo(neuralLines, 
+        { width: 0, opacity: 0 },
+        { 
+          width: '100%', 
+          opacity: 1, 
+          duration: 1.5, 
+          stagger: 0.2, 
+          ease: "power2.out", 
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top center"
+          }
+        }
+      );
+    }
+
+    return () => {
+      // Cleanup
+      ScrollTrigger.getAll().forEach(t => t.kill());
+    };
+  }, [reduceMotion, animationControls]);
+
+  // Section title animation
+  const headingVariants: Variants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: safeSpring,
+        damping: 25,
+        stiffness: 100
+      }
+    }
+  };
+
+  // Section subtitle animation
+  const subheadingVariants: Variants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: safeSpring,
+        damping: 25,
+        stiffness: 100,
+        delay: 0.2
+      }
+    }
+  };
 
   return (
     <section ref={sectionRef} className="py-24 px-4 md:px-8 lg:px-16 relative">
@@ -395,14 +454,36 @@ const FeaturesSection: React.FC = () => {
         </svg>
       </div>
 
-      {/* Section heading */}
+      {/* Section title with neon effect */}
       <motion.h2 
-        className="section-title text-4xl md:text-5xl font-bold text-center mb-16 neon-text"
-        initial={{ opacity: 0, y: 30 }}
-        animate={controls}
+        ref={headingRef}
+        className="text-4xl md:text-5xl font-bold mb-3 neon-text font-mono breathe"
+        variants={headingVariants}
+        initial="hidden"
+        animate={animationControls}
       >
-        Form Your Consciousness
+        // MENTAL PROGRAMMING MODULES
       </motion.h2>
+
+      {/* Neural network line */}
+      <div className="neural-line w-40 mx-auto my-4"></div>
+
+      {/* Section subtitle */}
+      <motion.p
+        ref={subheadingRef} 
+        className="text-xl text-gray-300 mb-16 max-w-2xl mx-auto text-center font-mono"
+        variants={subheadingVariants}
+        initial="hidden"
+        animate={animationControls}
+      >
+        Initialize mind programming sequences with our neural interface technology
+      </motion.p>
+      
+      {/* Command line interface element */}
+      <div className="glass-dark p-3 rounded max-w-md mx-auto mb-10 border-l-4 font-mono" style={{ borderColor: animationMode === 'chill' ? '#00C2FF' : animationMode === 'focus' ? '#9200FF' : '#00FFB2' }}>
+        <p className="text-[#00C2FF] text-sm">{">"}system.load("programming.modules");</p>
+        <p className="text-white text-xs opacity-60 mt-1">// Loading neural interfaces... Complete.</p>
+      </div>
 
       {/* Features grid */}
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
